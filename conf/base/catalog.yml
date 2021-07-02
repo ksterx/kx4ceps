@@ -1,0 +1,6 @@
+laparo_train_026:
+  type: pandas.CSVDataSet
+  filepath: data/01_raw/ds_026/train.csv
+laparo_val_026:
+  type: pandas.CSVDataSet
+  filepath: data/01_raw/ds_026/val.csv

@@ -1,0 +1,117 @@
+FROM nvcr.io/nvidia/pytorch:21.05-py3
+
+LABEL maintainer="ksterx <kostonerx@gmail.com>"
+
+ENV HOME /home
+ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
+
+RUN echo "Now building..."
+
+ENV TZ=Asia/Tokyo
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+    git \
+    build-essential \
+    vim \
+    sudo \
+
+    # tkinter requirements
+    python3-tk \
+    libgl1-mesa-dev \ 
+
+    # Visual Studio Code requirements
+    libssl1.1 \
+    libkrb5-3 \
+    zlib1g \
+    libicu[0-9][0-9] \
+    gnome-keyring \
+    libsecret-1-0 \
+    desktop-file-utils \
+    x11-utils &&\
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+ARG USERNAME=ksterx
+ARG PASSWORD=pwd
+RUN useradd -m -s /bin/bash -G sudo $USERNAME && \
+    echo $USERNAME:$PASSWORD | chpasswd && \
+    gpasswd -a $USERNAME sudo
+
+######################
+# Package installation (conda)
+
+RUN conda update --all -y -q && \
+    conda install -y -q \
+    pillow \
+    seaborn \
+    typing \
+    && conda clean --all -f -y
+
+# Package installation (pip)
+RUN pip install -U pip && \
+    pip install \
+    bokeh \
+    line-profiler \
+    mlflow \
+    opencv-python \
+    opencv-contrib-python \
+    optuna \
+    pytorch_memlab \
+    torch-summary
+
+######################
+# Preferences (Comment the lines out, if not needed)
+USER $USERNAME
+WORKDIR /home/$USERNAME/
+
+RUN pip install -q \
+    #     black \
+    #     jupyterlab_code_formatter \
+    #     jupyterlab-git \
+    #     jupyter-lsp \
+    #     jupyter-tensorboard \
+    #     jupytext \
+    #     nbresuse \
+    #     'python-language-server[all]' \
+    #     ipympl \
+    yapf
+
+# RUN conda install -y -q \
+#     ipywidgets \
+#     nodejs==10.13.0 \
+#  && conda install -y -q xeus-python -c conda-forge \
+
+
+# ######################
+# # Jupyter setup
+
+# RUN jupyter notebook --generate-config \
+#  && echo "c.NotebookApp.ip = '*'" >> $HOME/.jupyter/jupyter_notebook_config.py \
+#  && echo "c.NotebookApp.port = 8888" >> $HOME/.jupyter/jupyter_notebook_config.py \
+#  && echo "c.NotebookApp.open_browser = False" >> $HOME/.jupyter/jupyter_notebook_config.py \
+#  && echo "c.NotebookApp.notebook_dir = '$WORKSPACE'" >> $HOME/.jupyter/jupyter_notebook_config.py \
+#  && echo 'c.NotebookApp.contents_manager_class = "jupytext.TextFileContentsManager"' >> $HOME/.jupyter/jupyter_notebook_config.py \
+#  && echo 'c.ContentsManager.default_jupytext_formats = "ipynb,py"' >> $HOME/.jupyter/jupyter_notebook_config.py
+
+
+# ######################
+# # JupyterLab Extensions
+
+# RUN jupyter labextension install @jupyter-widgets/jupyterlab-manager \
+#  && jupyter labextension install @lckr/jupyterlab_variableinspector \
+#  && jupyter labextension install @krassowski/jupyterlab-lsp \
+#  && jupyter labextension install @jupyterlab/debugger \
+#  && jupyter labextension install @telamonian/theme-darcula \
+#  && jupyter labextension install @jupyterlab/toc \
+#  && jupyter labextension install jupyterlab_tensorboard \
+#  && jupyter labextension install jupyterlab-topbar-extension jupyterlab-system-monitor \
+#  && jupyter labextension install @ryantam626/jupyterlab_code_formatter \
+#  && jupyter labextension install @jupyter-widgets/jupyterlab-manager jupyter-matplotlib@0.7.4 \
+#  && jupyter labextension install @bokeh/jupyter_bokeh
+
+# RUN jupyter serverextension enable --py jupyterlab_code_formatter
+
+# RUN jupyter lab build

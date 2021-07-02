@@ -1,0 +1,14 @@
+version: '2.3'
+
+services:
+    app:
+        build: .
+        runtime: nvidia
+        environment: 
+            - NVIDIA_VISIBLE_DEVICES=all
+            - NVIDIA_DRIVER_CAPABILITIES=all
+        image: ksterx/pytorch-gpu:1.0
+        container_name: dl
+        volumes:
+            - ..:$HOME/workspace
+        tty: true
